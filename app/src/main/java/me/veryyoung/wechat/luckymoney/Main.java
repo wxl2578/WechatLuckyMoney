@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -40,15 +41,18 @@ public class Main implements IXposedHookLoadPackage {
 
     private static String wechatVersion = "";
 
+
     @Override
     public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {
+
         if (lpparam.packageName.equals(WECHAT_PACKAGE_NAME)) {
             if (TextUtils.isEmpty(wechatVersion)) {
                 Context context = (Context) callMethod(callStaticMethod(findClass("android.app.ActivityThread", null), "currentActivityThread", new Object[0]), "getSystemContext", new Object[0]);
                 String versionName = context.getPackageManager().getPackageInfo(lpparam.packageName, 0).versionName;
-                log("Found wechat version:" + versionName);
+                log("+++Found wechat version:" + versionName);
                 wechatVersion = versionName;
                 VersionParam.init(versionName);
+                Log.d("+++", String.format("Found wechat version: %s", versionName));
             }
             findAndHookMethod("com.tencent.mm.ui.LauncherUI", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                 @Override
@@ -79,12 +83,15 @@ public class Main implements IXposedHookLoadPackage {
             findAndHookMethod(VersionParam.getMessageClass, lpparam.classLoader, "b", Cursor.class, new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    Log.d("+++","++++++++++++++++++++++++++++");
+
                     if (!PreferencesUtils.open()) {
                         return;
                     }
 
 
                     int type = (int) getObjectField(param.thisObject, "field_type");
+                    Log.d("+++", String.format("Msg type: %d", type));
                     if (type == 436207665 || type == 469762097) {
 
                         int status = (int) getObjectField(param.thisObject, "field_status");
