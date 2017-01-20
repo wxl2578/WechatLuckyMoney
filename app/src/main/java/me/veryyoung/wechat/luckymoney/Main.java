@@ -110,6 +110,7 @@ public class Main implements IXposedHookLoadPackage {
                             }
                         }
 
+
                         int isSend = (int) getObjectField(param.thisObject, "field_isSend");
                         if (PreferencesUtils.notSelf() && isSend != 0) {
                             return;
